@@ -2,7 +2,7 @@ import ballerina/data.csv;
 import ballerina/io;
 import ballerinax/health.fhir.r4;
 
-const string CSV_PATH = "loinc/LoincTable/loinc.csv";
+const string CSV_PATH = "loinc/LoincTable/test.csv";
 
 // Function to read the LOINC CSV file
 function readLoincCsv(string path) returns LoincConcept[]|error {
