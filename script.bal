@@ -1,6 +1,6 @@
 import ballerina/io;
 import ballerina/data.csv;
-import ballerina/jsonutils;
+import ballerina/lang.value;
 import ballerinax/health.fhir.r4;
 
 type Concept record {
@@ -12,14 +12,20 @@ const string CSV_PATH = "loinc/LoincTable/LOINC.csv"; // Change this to your ful
 
 // Function to read the LOINC CSV file
 function readLoincCsv(string path) returns Concept[]|error {
-    csv:ReadableCSVChannel csvChannel = check csv:openReadableCsvChannel(path, csv:DEFAULT_READ_OPTIONS);
-    stream<record{}, error> csvStream = csvChannel.getRecords();
     Concept[] concepts = [];
-    error? e = csvStream.forEach(function(record{} row) {
-        string code = check row["LOINC_NUM"].toString();
-        string display = check row.get("COMPONENT").toString() ?: "Unknown";
-        concepts.push({code: code, display: display.trim()});
+    csv:ReadableCSVChannel csvChannel = check csv:openReadableCsvChannel(path, csv:DEFAULT_READ_OPTIONS);
+    stream<map<string>, io:Error?> csvStream = csvChannel.getRecords();
+
+    // Iterate through the CSV stream and map the data to the Concept type
+    error? e = csvStream.forEach(function(map<string> row) {
+        string code = row.get("LOINC_NUM") ?: "Unknown";
+        string display = row.get("COMPONENT") ?: "Unknown";
+        concepts.push({
+            code: code,
+            display: display.trim()
+        });
     });
+
     return concepts;
 }
 
@@ -41,7 +47,7 @@ function createCodeSystemResource(Concept[] concepts) returns r4:CodeSystem {
 // Function to export the combined CodeSystem resource to a JSON file
 function exportCombined(Concept[] concepts) returns error? {
     r4:CodeSystem codeSystem = createCodeSystemResource(concepts);
-    json jsonContent = check jsonutils:toJSON(codeSystem);
+    json jsonContent = check value:toJSON(codeSystem);
     string filePath = "loinc-codesystem.json";
     check io:fileWriteString(filePath, jsonContent.toJsonString());
     io:println("Combined all concepts into " + filePath);
