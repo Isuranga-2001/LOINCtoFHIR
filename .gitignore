@@ -12,3 +12,4 @@ Config.toml
 
 loinc/
 python/
+*.json

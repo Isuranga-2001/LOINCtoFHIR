@@ -1,36 +1,17 @@
-import ballerina/io;
 import ballerina/data.csv;
-import ballerina/lang.value;
+import ballerina/io;
 import ballerinax/health.fhir.r4;
 
-type Concept record {
-    string code;
-    string display;
-};
-
-const string CSV_PATH = "loinc/LoincTable/LOINC.csv"; // Change this to your full LOINC path
+const string CSV_PATH = "loinc/LoincTable/loinc.csv";
 
 // Function to read the LOINC CSV file
-function readLoincCsv(string path) returns Concept[]|error {
-    Concept[] concepts = [];
-    csv:ReadableCSVChannel csvChannel = check csv:openReadableCsvChannel(path, csv:DEFAULT_READ_OPTIONS);
-    stream<map<string>, io:Error?> csvStream = csvChannel.getRecords();
-
-    // Iterate through the CSV stream and map the data to the Concept type
-    error? e = csvStream.forEach(function(map<string> row) {
-        string code = row.get("LOINC_NUM") ?: "Unknown";
-        string display = row.get("COMPONENT") ?: "Unknown";
-        concepts.push({
-            code: code,
-            display: display.trim()
-        });
-    });
-
-    return concepts;
+function readLoincCsv(string path) returns LoincConcept[]|error {
+    string csvString = check io:fileReadString(path);
+    return check csv:parseString(csvString);
 }
 
 // Function to create the CodeSystem resource
-function createCodeSystemResource(Concept[] concepts) returns r4:CodeSystem {
+function createCodeSystemResource(LoincConcept[]? concepts) returns r4:CodeSystem {
     return {
         resourceType: "CodeSystem",
         id: "loinc",
@@ -40,21 +21,38 @@ function createCodeSystemResource(Concept[] concepts) returns r4:CodeSystem {
         title: "LOINC CodeSystem",
         status: "active",
         content: "complete",
-        concept: concepts
+        concept: LoincConceptToR4Concept(concepts)
     };
 }
 
 // Function to export the combined CodeSystem resource to a JSON file
-function exportCombined(Concept[] concepts) returns error? {
+function exportCombined(LoincConcept[] concepts) returns error? {
     r4:CodeSystem codeSystem = createCodeSystemResource(concepts);
-    json jsonContent = check value:toJSON(codeSystem);
+    json jsonContent = codeSystem.toJson();
     string filePath = "loinc-codesystem.json";
     check io:fileWriteString(filePath, jsonContent.toJsonString());
     io:println("Combined all concepts into " + filePath);
 }
 
+function LoincConceptToR4Concept(LoincConcept[]? loincConcepts) returns r4:CodeSystemConcept[] {
+    if loincConcepts is null {
+        return [];
+    }
+
+    r4:CodeSystemConcept[] r4Concepts = [];
+    foreach LoincConcept loinc in loincConcepts {
+        r4:CodeSystemConcept concept = {
+            code: loinc.LOINC_NUM,
+            display: loinc.COMPONENT,
+            definition: loinc.DefinitionDescription
+        };
+        r4Concepts.push(concept);
+    }
+    return r4Concepts;
+}
+
 public function main() {
-    Concept[]|error loincData = readLoincCsv(CSV_PATH);
+    LoincConcept[]|error loincData = readLoincCsv(CSV_PATH);
     if (loincData is error) {
         io:println("Error reading LOINC CSV: ", loincData);
         return;
