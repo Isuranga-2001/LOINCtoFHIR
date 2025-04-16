@@ -36,7 +36,7 @@ LOINCtoFHIR/
    Execute the Ballerina script to generate the FHIR CodeSystem resource:
 
    ```bash
-   ballerina run script.bal
+   bal run
    ```
 
 3. **Output**  
