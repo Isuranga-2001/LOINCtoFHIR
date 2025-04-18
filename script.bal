@@ -1,13 +1,12 @@
-import ballerina/data.csv;
 import ballerina/io;
 import ballerinax/health.fhir.r4;
 
-const string CSV_PATH = "loinc/LoincTable/test.csv";
+const string CSV_PATH = "loinc/LoincTable/Loinc.csv";
 
 // Function to read the LOINC CSV file
 function readLoincCsv(string path) returns LoincConcept[]|error {
-    string csvString = check io:fileReadString(path);
-    return check csv:parseString(csvString);
+    LoincConcept[]|io:Error content = io:fileReadCsv(path);
+    return content;
 }
 
 // Function to create the CodeSystem resource
@@ -16,7 +15,7 @@ function createCodeSystemResource(LoincConcept[]? concepts) returns r4:CodeSyste
         resourceType: "CodeSystem",
         id: "loinc",
         url: "http://loinc.org",
-        version: "2.8",
+        'version: "2.8", // need to get as a user input
         name: "LOINC",
         title: "LOINC CodeSystem",
         status: "active",
@@ -31,9 +30,10 @@ function exportCombined(LoincConcept[] concepts) returns error? {
     json jsonContent = codeSystem.toJson();
     string filePath = "loinc-codesystem.json";
     check io:fileWriteString(filePath, jsonContent.toJsonString());
-    io:println("Combined all concepts into " + filePath);
+    io:println("CodeSystem exported to ", filePath);
 }
 
+// Mapping function
 function LoincConceptToR4Concept(LoincConcept[]? loincConcepts) returns r4:CodeSystemConcept[] {
     if loincConcepts is null {
         return [];
@@ -43,8 +43,7 @@ function LoincConceptToR4Concept(LoincConcept[]? loincConcepts) returns r4:CodeS
     foreach LoincConcept loinc in loincConcepts {
         r4:CodeSystemConcept concept = {
             code: loinc.LOINC_NUM,
-            display: loinc.COMPONENT,
-            definition: loinc.DefinitionDescription
+            display: loinc.COMPONENT
         };
         r4Concepts.push(concept);
     }
