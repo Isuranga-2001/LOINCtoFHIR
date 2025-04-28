@@ -1,5 +1,6 @@
 import ballerina/io;
 import ballerinax/health.fhir.r4;
+import ballerinax/health.fhir.r4.parser;
 
 const string CSV_PATH = "loinc/LoincTable/Loinc.csv";
 
@@ -25,7 +26,7 @@ function createCodeSystemResource(LoincConcept[]? concepts) returns r4:CodeSyste
 }
 
 // Function to export the combined CodeSystem resource to a JSON file
-function exportCombined(LoincConcept[] concepts) returns error? {
+function exportCodeSystem(LoincConcept[] concepts) returns error? {
     r4:CodeSystem codeSystem = createCodeSystemResource(concepts);
     json jsonContent = codeSystem.toJson();
     string filePath = "loinc-codesystem.json";
@@ -174,14 +175,31 @@ function getProperties(LoincConcept loinc) returns r4:CodeSystemConceptProperty[
     return properties;
 }
 
+function validateExtractedData() returns boolean|error {
+    // Parse the JSON in the "loinc-codesystem.json" at the end of the program
+    string jsonString = check io:fileReadString("loinc-codesystem.json");
+
+    // parse into CodeSystem object
+    r4:CodeSystem codeSystem = check parser:parse(jsonString).ensureType();
+    io:println("Validation successful, Parsed CodeSystem: ", codeSystem.url);
+    return true;
+}
+
 public function main() {
     LoincConcept[]|error loincData = readLoincCsv(CSV_PATH);
     if (loincData is error) {
         io:println("Error reading LOINC CSV: ", loincData);
         return;
     }
-    error? result = exportCombined(loincData);
+
+    error? result = exportCodeSystem(loincData);
     if (result is error) {
         io:println("Error exporting combined CodeSystem: ", result);
+    }
+
+    // Validate the extracted data
+    boolean|error validationResult = validateExtractedData();
+    if (validationResult is error) {
+        io:println("Error validating extracted data: ", validationResult);
     }
 }
