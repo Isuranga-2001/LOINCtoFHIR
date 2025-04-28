@@ -1,9 +1,10 @@
 import ballerina/io;
 import ballerinax/health.fhir.r4;
 import ballerinax/health.fhir.r4.parser;
+// import ballerina/xmldata;
 
 const string CSV_PATH = "loinc/LoincTable/Loinc.csv";
-const string XML_PATH = "loinc/Loinc.xml";
+const string XML_PATH = "loinc/loinc.xml";
 
 // Function to read the LOINC CSV file
 function readLoincCsv(string path) returns LoincConcept[]|error {
@@ -13,20 +14,33 @@ function readLoincCsv(string path) returns LoincConcept[]|error {
 
 // Function to read the LOINC XML file
 function getCodeSystemDataFromXml(string path) returns r4:CodeSystem|error {
-    xml|io:Error content = io:fileReadXml(path);
+    xml|io:Error codeSystemContent = io:fileReadXml(path);
 
-    if content is error {
-        return content;
+    if codeSystemContent is error {
+        return codeSystemContent;
     }
+
+    // LoincCodeSystem xmlCodeSystem = check xmldata:fromXml(codeSystemContent, LoincCodeSystem);
+    // io:println("Parsed XML CodeSystem: ", xmlCodeSystem.toString());
 
     // convert XML to CodeSystem
-    var codeSystem = check parser:parse(content, r4:CodeSystem);
+    // var codeSystem = check parser:parse(content, r4:CodeSystem);
 
-    if codeSystem is r4:CodeSystem {
-        return codeSystem;
-    } else {
-        return error("Failed to read XML file");
-    }
+    // io:println("CodeSystem Content: ", codeSystemContent.toString());
+
+    xml:Element personElement = check codeSystemContent.cloneWithType(xml:Element);
+
+    io:println("Name: ", personElement.getChildren().filter(x => x is xml:Element && x.getName() == "Name")[0]);
+
+    r4:CodeSystem codeSystem = {
+        name: check codeSystemContent.name,
+        'version: check codeSystemContent.'version,
+        content: "example",
+        status: "active"
+    };
+
+    io:println(codeSystem.toJsonString());
+    return codeSystem;
 }
 
 // Function to create the CodeSystem resource
@@ -70,6 +84,16 @@ function LoincConceptToR4Concept(LoincConcept[]? loincConcepts) returns r4:CodeS
     return r4Concepts;
 }
 
+function validateExtractedData() returns boolean|error {
+    // Parse the JSON in the "loinc-codesystem.json" at the end of the program
+    string jsonString = check io:fileReadString("loinc-codesystem.json");
+
+    // parse into CodeSystem object
+    r4:CodeSystem codeSystem = check parser:parse(jsonString).ensureType();
+    io:println("Validation successful, Parsed CodeSystem: ", codeSystem.url);
+    return true;
+}
+
 public function main() {
     // Read the LOINC XML file to get CodeSystem data
     r4:CodeSystem|error codeSystemData = getCodeSystemDataFromXml(XML_PATH);
@@ -89,5 +113,11 @@ public function main() {
     error? result = exportFHIR(loincData, codeSystemData);
     if (result is error) {
         io:println("Error exporting the CodeSystem: ", result);
+    }
+
+    // Validate the extracted data
+    boolean|error validationResult = validateExtractedData();
+    if (validationResult is error) {
+        io:println("Error validating extracted data: ", validationResult);
     }
 }

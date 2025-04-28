@@ -40,3 +40,43 @@ type LoincConcept record {
     string? ValidHL7AttachmentRequest?;
     string? DisplayName?;
 };
+
+type LoincCodeSystem record {|
+    string id;
+    string url;
+    record {|
+        string system;
+        string value;
+    |}[] identifier?;
+    string name;
+    string title;
+    string status;
+    boolean experimental?;
+    string publisher?;
+    record {|
+        record {|
+            string system;
+            string value;
+        |} telecom;
+    |}[] contact?;
+    string description?;
+    string copyright?;
+    boolean caseSensitive?;
+    string valueSet?;
+    string hierarchyMeaning?;
+    boolean compositional?;
+    boolean versionNeeded?;
+    string content;
+    record {|
+        string code;
+        string description;
+        string operator;
+        string value;
+    |}[] filter?;
+    record {|
+        string code;
+        string uri;
+        string description;
+        string 'type;
+    |}[] property?;
+|};
