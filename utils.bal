@@ -147,7 +147,7 @@ function createCodeSystemResource(LoincConcept[]? concepts) returns r4:CodeSyste
         resourceType: "CodeSystem",
         id: "loinc",
         url: "http://loinc.org",
-        'version: "2.8", // need to get as a user input
+        'version: "2.8",
         name: "LOINC",
         title: "LOINC CodeSystem",
         status: "active",
