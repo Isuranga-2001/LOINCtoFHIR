@@ -2,7 +2,7 @@ import ballerina/io;
 import ballerinax/health.fhir.r4;
 import ballerinax/health.fhir.r4.parser;
 
-const string CSV_PATH = "loinc/LoincTable/Loinc.csv";
+// CSV_PATH = "loinc/LoincTable/Loinc.csv";
 
 // Function to read the LOINC CSV file
 function readLoincCsv(string path) returns LoincConcept[]|error {
@@ -11,26 +11,32 @@ function readLoincCsv(string path) returns LoincConcept[]|error {
 }
 
 // Function to export the combined CodeSystem resource to a JSON file
-function exportCodeSystem(LoincConcept[] concepts) returns error? {
+function exportCodeSystem(LoincConcept[] concepts, string fileName) returns error? {
     r4:CodeSystem codeSystem = createCodeSystemResource(concepts);
     json jsonContent = codeSystem.toJson();
-    string filePath = "loinc-codesystem.json";
-    check io:fileWriteString(filePath, jsonContent.toJsonString());
-    io:println("CodeSystem exported to ", filePath);
+    check io:fileWriteString(fileName, jsonContent.toJsonString());
+    io:println("CodeSystem exported to ", fileName);
 }
 
-function validateExtractedData() returns error? {
+function validateExtractedData(string fileName) returns error? {
     // Parse the JSON in the "loinc-codesystem.json" at the end of the program
-    string jsonString = check io:fileReadString("loinc-codesystem.json");
+    string jsonString = check io:fileReadString(fileName);
 
     // parse into CodeSystem object
     r4:CodeSystem codeSystem = check parser:parse(jsonString).ensureType();
-    io:println("Validation successful, Parsed CodeSystem: ", codeSystem.url);
+    io:println("Successfully Parsed CodeSystem: ", codeSystem.url);
 }
 
-public function main() returns error? {
-    LoincConcept[] loincData = check readLoincCsv(CSV_PATH);
+public function main(string path, string? fhirFileName) returns error? {
+    if (path == "") {
+        io:println("Please provide the path to the CSV file as an argument.");
+        return error("Path not provided");
+    }
 
-    _ = check exportCodeSystem(loincData);
-    _ = check validateExtractedData();
+    LoincConcept[] loincData = check readLoincCsv(path);
+
+    string fileName = fhirFileName !is string ? "loinc-codesystem.json" : fhirFileName + ".json";
+
+    _ = check exportCodeSystem(loincData, fileName);
+    _ = check validateExtractedData(fileName);
 }
