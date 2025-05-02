@@ -1,4 +1,6 @@
 import ballerinax/health.fhir.r4;
+// import ballerina/data.xmldata;
+import ballerina/io;
 
 // Mapping function
 function LoincConceptToR4Concept(LoincConcept[]? loincConcepts) returns r4:CodeSystemConcept[] {
@@ -142,7 +144,35 @@ function getProperties(LoincConcept loinc) returns r4:CodeSystemConceptProperty[
 }
 
 // Function to create the CodeSystem resource
-function createCodeSystemResource(LoincConcept[]? concepts) returns r4:CodeSystem {
+function createCodeSystemResource(LoincConcept[]? concepts, string fileName) returns r4:CodeSystem|error {
+    io:println("Reading LOINC XML file from: ", fileName, " ...");
+    string xmlString = check io:fileReadString(fileName);
+    xml xmlContent = check xml:fromString(xmlString);
+
+    // LoincCodeSystem codeSystem = check xmldata:parseAsType(v = xmlContent);
+
+    // io:println(codeSystem.toString());
+
+    xml xmlHello = xml `<para id="greeting">Hello</para>`;
+    string id = check xmlHello.id;
+    io:println(id);
+
+    io:println("XML Content: ", xmlContent.length());
+    // io:println("XML Content: ", xmlContent[0][0].<url>.toString());
+    xml url = xmlContent[0];
+    io:println("url: ", xmlContent[2], ".");
+
+    io:println("XML Content: ");
+        // Creates an XML value.
+    xml xmlValue = xml `<details>
+                          <author>Sir Arthur Conan Doyle</author>
+                          <language>English</language>
+                        </details>`;
+
+    // `x[i]` or `x.get(i)` gives the `i`-th item.
+    io:println(xmlValue[0].<author>); // Sir Arthur Conan Doyle
+  
+
     return {
         resourceType: "CodeSystem",
         id: "loinc",
@@ -155,3 +185,13 @@ function createCodeSystemResource(LoincConcept[]? concepts) returns r4:CodeSyste
         concept: LoincConceptToR4Concept(concepts)
     };
 }
+
+type LoincCodeSystem record {|
+    string id?;
+    string url?;
+    string version?;
+    string name?;
+    string title?;
+    string status?;
+    string content?;
+|};
