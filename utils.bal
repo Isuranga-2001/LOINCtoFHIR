@@ -1,4 +1,6 @@
 import ballerinax/health.fhir.r4;
+import ballerinax/health.fhir.r4.parser;
+import ballerina/io;
 
 // Mapping function
 function LoincConceptToR4Concept(LoincConcept[]? loincConcepts) returns r4:CodeSystemConcept[] {
@@ -142,16 +144,12 @@ function getProperties(LoincConcept loinc) returns r4:CodeSystemConceptProperty[
 }
 
 // Function to create the CodeSystem resource
-function createCodeSystemResource(LoincConcept[]? concepts) returns r4:CodeSystem {
-    return {
-        resourceType: "CodeSystem",
-        id: "loinc",
-        url: "http://loinc.org",
-        'version: "2.8",
-        name: "LOINC",
-        title: "LOINC CodeSystem",
-        status: "active",
-        content: "complete",
-        concept: LoincConceptToR4Concept(concepts)
-    };
+function createCodeSystemResource(LoincConcept[]? concepts, string loincJsonPath) returns r4:CodeSystem|error {
+    io:println("Reading LOINC JSON file from: ", loincJsonPath, " ...");
+    string jsonString = check io:fileReadString(loincJsonPath);
+
+    r4:CodeSystem codeSystem = check parser:parse(jsonString).ensureType();
+    codeSystem.concept = LoincConceptToR4Concept(concepts);
+    
+    return codeSystem;
 }
