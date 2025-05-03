@@ -22,6 +22,7 @@ LOINCtoFHIR/
 ├── loinc/
 │   └── LoincTable/
 │       └── loinc.csv  # Input LOINC CSV file
+│   └── loinc.json     # CodeSystem details (without concepts)
 ├── script.bal        # Main Ballerina script
 ├── loinc-codesystem.json  # Output JSON file (generated)
 └── README.md         # Project documentation
@@ -36,11 +37,12 @@ LOINCtoFHIR/
    Execute the Ballerina script with the required arguments to generate the FHIR CodeSystem resource:
 
    ```bash
-   bal run -- "loinc/LoincTable/Loinc.csv" "loincCodeSystem"
+   bal run -- "loinc/LoincTable/Loinc.csv" "loinc/loinc.json" "loinc-codesystem.json"
    ```
 
    - The first argument is the path to the LOINC CSV file.
-   - The second argument is the name of the output JSON file (without the `.json` extension).
+   - The second argument is the path to the `loinc.json` file, which contains the CodeSystem details (without concepts). Defaults to `loinc/loinc.json`.
+   - The third argument is the name of the output JSON file (without the `.json` extension, optional).
 
 3. **Output**  
    The combined CodeSystem resource will be exported as `loincCodeSystem.json` (or the specified file name) in the project root directory.
