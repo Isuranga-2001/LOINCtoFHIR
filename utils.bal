@@ -1,6 +1,11 @@
 import ballerinax/health.fhir.r4;
 import ballerinax/health.fhir.r4.parser;
 import ballerina/io;
+import ballerinacentral/zip;
+
+function extractLoincZip(string sourcePath) returns error? {
+    check zip:extract(sourcePath, EXTRACTED_FOLDER_PATH);
+}
 
 // Mapping function
 function LoincConceptToR4Concept(LoincConcept[]? loincConcepts) returns r4:CodeSystemConcept[] {

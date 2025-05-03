@@ -10,8 +10,9 @@ Config.toml
 # the config files used for testing, Uncomment the following line if you want to commit the test config files
 #!**/tests/Config.toml
 
-loinc/
+extracted_loinc/
 python/
 *.json
 *.py
 *.jar
+*.zip
