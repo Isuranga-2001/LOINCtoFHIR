@@ -40,3 +40,138 @@ type LoincConcept record {
     string? ValidHL7AttachmentRequest?;
     string? DisplayName?;
 };
+
+// xml parse
+type XMLCodeSystem record {
+    Id id;
+    Url url;
+    Identifier identifier;
+    Name name;
+    Title title;
+    Status status;
+    Experimental experimental;
+    Publisher publisher;
+    Contact contact;
+    Copyright copyright;
+    CaseSensitive caseSensitive;
+    ValueSet valueSet;
+    HierarchyMeaning hierarchyMeaning;
+    Compositional compositional;
+    VersionNeeded versionNeeded;
+    Content content;
+    Description[] description;
+    Filter[] filters?;
+    Property[] properties?;
+};
+
+type Id record {
+    string value;
+};
+
+type Url record {
+    string value;
+};
+
+type Identifier record {
+    System system;
+    Value value;
+};
+
+type System record {
+    string value;
+};
+
+type Value record {
+    string value;
+};
+
+type Name record {
+    string value;
+};
+
+type Title record {
+    string value;
+};
+
+type Status record {
+    string value;
+};
+
+type Experimental record {
+    boolean value;
+};
+
+type Publisher record {
+    string value;
+};
+
+type Contact record {
+    Telecom telecom;
+};
+
+type Telecom record {
+    System system;
+    Value value;
+};
+
+type Description record {
+    string value;
+};
+
+type Copyright record {
+    string value;
+};
+
+type CaseSensitive record {
+    boolean value;
+};
+
+type ValueSet record {
+    string value;
+};
+
+type HierarchyMeaning record {
+    string value;
+};
+
+type Compositional record {
+    boolean value;
+};
+
+type VersionNeeded record {
+    boolean value;
+};
+
+type Content record {
+    string value;
+};
+
+type Filter record {
+    Code code;
+    Description description;
+    Operator operator;
+    Value value;
+};
+
+type Code record {
+    string value;
+};
+
+type Operator record {
+    string value;
+};
+
+type Property record {
+    Code code;
+    Uri uri;
+    Description description;
+    Type 'type;
+};
+
+type Uri record {
+    string value;
+};
+
+type Type record {
+    string value;
+};

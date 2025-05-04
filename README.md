@@ -21,7 +21,7 @@ LOINCtoFHIR is a Ballerina-based project designed to convert LOINC (Logical Obse
 LOINCtoFHIR/
 ├── loinc/
 │   └── LoincTable/
-│       └── loinc.csv  # Input LOINC CSV file
+│       └── loinc.csv  # Input LOINC CSV file (without concepts)
 │   └── loinc.json     # CodeSystem details (without concepts)
 ├── script.bal        # Main Ballerina script
 ├── loinc-codesystem.json  # Output JSON file (generated)
@@ -30,19 +30,28 @@ LOINCtoFHIR/
 
 ## Usage
 
-1. **Prepare the LOINC CSV File**  
-   Place your LOINC CSV file in the `loinc/LoincTable/` directory. Ensure the file is named `Loinc.csv` or update the `path` argument accordingly.
+1. **Prepare the LOINC Data**  
+   - To extract the CodeSystem from a LOINC ZIP file provided by LOINC.org, use the following command:
+
+     ```bash
+     bal run -- "extract" "Loinc_2.80.zip" "2.80"
+     ```
+
+     - The first argument is the command to extract the CodeSystem from the ZIP file.
+     - The second argument is the path to the LOINC ZIP file.
+     - The third argument is the version of the LOINC CodeSystem.
+
+   - To provide the LOINC CSV file and the CodeSystem JSON file separately, use the following command:
+
+     ```bash
+     bal run -- "loinc.csv" "Loinc.json"
+     ```
+
+     - The first argument is the path to the LOINC CSV file.
+     - The second argument is the path to the `Loinc.json` file, which contains the CodeSystem details (without concepts). Defaults to `loinc/loinc.json`.
 
 2. **Run the Script**  
-   Execute the Ballerina script with the required arguments to generate the FHIR CodeSystem resource:
-
-   ```bash
-   bal run -- "loinc/LoincTable/Loinc.csv" "loinc/loinc.json" "loinc-codesystem.json"
-   ```
-
-   - The first argument is the path to the LOINC CSV file.
-   - The second argument is the path to the `loinc.json` file, which contains the CodeSystem details (without concepts). Defaults to `loinc/loinc.json`.
-   - The third argument is the name of the output JSON file (without the `.json` extension, optional).
+   Execute the appropriate command based on your input data to generate the FHIR CodeSystem resource.
 
 3. **Output**  
    The combined CodeSystem resource will be exported as `loincCodeSystem.json` (or the specified file name) in the project root directory.
