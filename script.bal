@@ -10,10 +10,17 @@ function readLoincCsv(string path) returns LoincConcept[]|error {
 }
 
 // Function to export the combined CodeSystem resource to a JSON file
-function exportCodeSystem(LoincConcept[] concepts, string loincJsonPath) returns error? {
+function exportCodeSystem(LoincConcept[] concepts, string loincFilePath, string? 'version) returns error? {
     io:println("Exporting CodeSystem to JSON file: ", FHIR_LOINC_FILE_NAME, " ...");
 
-    r4:CodeSystem codeSystem = check createCodeSystemResource(concepts, loincJsonPath);
+    r4:CodeSystem codeSystem;
+
+    if 'version is string {
+        codeSystem = check createCodeSystemResource(concepts, loincFilePath, 'version);
+    } else {
+        codeSystem = check createCodeSystemResourceFromJSON(concepts, loincFilePath);
+    }
+    
     check io:fileWriteString(FHIR_LOINC_FILE_NAME, codeSystem.toJson().toJsonString());
 }
 
@@ -26,27 +33,37 @@ function validateExtractedData() returns error? {
     io:println("Successfully Parsed CodeSystem: ", codeSystem.url, ", version: ", codeSystem.version, "\n");
 }
 
-public function main(string path, string? codeSystemJsonPath) returns error? {
+public function main(string... args) returns error? {
+    if args.length() < 1 {
+        return error("Insufficient arguments. At least the path to the LOINC file is required.");
+    }
+
     string loincCsvPath;
-    string loincJsonPath;
+    string loincCodeSystemPath;
+    string? 'version = ();
 
-    if (codeSystemJsonPath is ()) {
-        io:println("Extract the concepts from LOINC ZIP file: ", path, " ...");
+    if (args[0] == "extract") {
+        // argument[0] is the command to extract the LOINC ZIP file
+        // argument[1] is the path to the LOINC ZIP file
+        // argument[2] is the version of the LOINC CodeSystem
+        io:println("Extract the concepts from LOINC ZIP file: ", args[1], " ...");
 
-        check extractLoincZip(path);
+        // check extractLoincZip(args[1]);
         loincCsvPath = EXTRACTED_FOLDER_PATH + LOINC_CSV_FILE_PATH;
-        loincJsonPath = EXTRACTED_FOLDER_PATH + LOINC_XML_FILE_PATH;
+        loincCodeSystemPath = EXTRACTED_FOLDER_PATH + LOINC_XML_FILE_PATH;
+        'version = args[2];
 
-        io:println("Extracted LOINC CSV file: ", loincCsvPath, " and LOINC XML file: ", loincJsonPath, " ...");
-
+        io:println("Extracted LOINC CSV file: ", loincCsvPath, " and LOINC XML file: ", loincCodeSystemPath, " ...");
     } else {
-        io:println("Extract the concepts from CSV file: ", path, " and extract the CodeSystem details from: ", codeSystemJsonPath, " ...");
+        // argument[0] is the path to the LOINC CSV file
+        // argument[1] is the path to the LOINC CodeSystem JSON file
+        io:println("Extract the concepts from CSV file: ", args[0], " and extract the CodeSystem details from: ", args[1], " ...");
 
-        loincCsvPath = path;
-        loincJsonPath = codeSystemJsonPath;
+        loincCsvPath = args[0];
+        loincCodeSystemPath = args[1];
     }
 
     LoincConcept[] loincData = check readLoincCsv(loincCsvPath);
-    check exportCodeSystem(loincData, loincJsonPath);
+    check exportCodeSystem(loincData, loincCodeSystemPath, 'version);
     check validateExtractedData();
 }

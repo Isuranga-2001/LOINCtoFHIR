@@ -2,6 +2,7 @@ import ballerinax/health.fhir.r4;
 import ballerinax/health.fhir.r4.parser;
 import ballerina/io;
 import ballerinacentral/zip;
+import ballerina/data.xmldata;
 
 function extractLoincZip(string sourcePath) returns error? {
     check zip:extract(sourcePath, EXTRACTED_FOLDER_PATH);
@@ -149,12 +150,85 @@ function getProperties(LoincConcept loinc) returns r4:CodeSystemConceptProperty[
 }
 
 // Function to create the CodeSystem resource
-function createCodeSystemResource(LoincConcept[]? concepts, string loincJsonPath) returns r4:CodeSystem|error {
-    io:println("Reading LOINC JSON file from: ", loincJsonPath, " ...");
-    string jsonString = check io:fileReadString(loincJsonPath);
+function createCodeSystemResourceFromJSON(LoincConcept[]? concepts, string loincFilePath) returns r4:CodeSystem|error {
+    io:println("Reading LOINC CodeSystem (JSON) file from: ", loincFilePath, " ...");
+    string jsonString = check io:fileReadString(loincFilePath);
 
     r4:CodeSystem codeSystem = check parser:parse(jsonString).ensureType();
     codeSystem.concept = LoincConceptToR4Concept(concepts);
     
     return codeSystem;
+}
+
+function createCodeSystemResource(LoincConcept[]? concepts, string loincFilePath, string? 'version) returns r4:CodeSystem|error {
+    io:println("Reading LOINC CodeSystem (XML) file from: ", loincFilePath, " ...");
+    xml xmlContent = check io:fileReadXml(loincFilePath);
+
+    XMLCodeSystem xmlcodeSystem = check xmldata:parseAsType(xmlContent);
+
+    r4:CodeSystem codeSystem = mapXMLCodeSystemToR4CodeSystem(xmlcodeSystem);
+    codeSystem.concept = LoincConceptToR4Concept(concepts);
+
+    // loinc xml does not having the version field
+    codeSystem.version = 'version;
+    
+    return codeSystem;
+}
+
+function mapXMLCodeSystemToR4CodeSystem(XMLCodeSystem xmlCodeSystem) returns r4:CodeSystem {
+    r4:CodeSystem r4CodeSystem = {
+        url: xmlCodeSystem.url?.value,
+        name: xmlCodeSystem.name?.value,
+        title: xmlCodeSystem.title?.value,
+        status: <r4:CodeSystemStatus>xmlCodeSystem.status?.value,
+        experimental: xmlCodeSystem.experimental?.value,
+        publisher: xmlCodeSystem.publisher?.value,
+        description: <r4:markdown>xmlCodeSystem.description[0].value,
+        copyright: xmlCodeSystem.copyright?.value,
+        caseSensitive: xmlCodeSystem.caseSensitive?.value,
+        valueSet: xmlCodeSystem.valueSet?.value,
+        hierarchyMeaning: <r4:CodeSystemHierarchyMeaning>xmlCodeSystem.hierarchyMeaning?.value,
+        compositional: xmlCodeSystem.compositional?.value,
+        versionNeeded: xmlCodeSystem.versionNeeded?.value,
+        content: <r4:CodeSystemContent>xmlCodeSystem.content?.value,
+        filter: mapFilters(xmlCodeSystem.filters),
+        property: mapProperties(xmlCodeSystem.properties)
+    };
+
+    return r4CodeSystem;
+}
+
+// Helper function to map filters
+function mapFilters(Filter[]? filters) returns r4:CodeSystemFilter[] {
+    if filters is () {
+        return [];
+    }
+    r4:CodeSystemFilter[] r4Filters = [];
+    foreach var filter in filters {
+        r4Filters.push({
+            code: filter.code?.value,
+            description: filter.description?.value,
+            operator: [<r4:CodeSystemFilterOperator>filter.operator?.value],
+            value: filter.value?.value
+        });
+    }
+    return r4Filters;
+}
+
+// Helper function to map properties
+function mapProperties(Property[]? properties) returns r4:CodeSystemProperty[] {
+    if properties is () {
+        return [];
+    }
+    r4:CodeSystemProperty[] r4Properties = [];
+    foreach var property in properties {
+        r4Properties.push({
+            code: property.code.value,
+            uri: property.uri.value,
+            description: property.description.value,
+            'type: <r4:CodeSystemPropertyType>property.'type.value
+        });
+    }
+
+    return r4Properties;
 }
