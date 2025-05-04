@@ -15,19 +15,6 @@ LOINCtoFHIR is a Ballerina-based project designed to convert LOINC (Logical Obse
 - [Ballerina](https://ballerina.io/) installed on your system.
 - A LOINC CSV file (e.g., `loinc.csv`) located in the `loinc/LoincTable/` directory.
 
-## Project Structure
-
-``` structure
-LOINCtoFHIR/
-├── loinc/
-│   └── LoincTable/
-│       └── loinc.csv  # Input LOINC CSV file (without concepts)
-│   └── loinc.json     # CodeSystem details (without concepts)
-├── script.bal        # Main Ballerina script
-├── loinc-codesystem.json  # Output JSON file (generated)
-└── README.md         # Project documentation
-```
-
 ## Usage
 
 1. **Prepare the LOINC Data**  
@@ -55,11 +42,6 @@ LOINCtoFHIR/
 
 3. **Output**  
    The combined CodeSystem resource will be exported as `loincCodeSystem.json` (or the specified file name) in the project root directory.
-
-## Error Handling
-
-- If the script encounters an error while reading the CSV file, it will print an error message and terminate.
-- Any issues during the export process will also be logged to the console.
 
 ## License
 
