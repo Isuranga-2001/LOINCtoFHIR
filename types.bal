@@ -43,135 +43,54 @@ type LoincConcept record {
 
 // xml parse
 type XMLCodeSystem record {
-    Id id;
-    Url url;
-    Identifier identifier;
-    Name name;
-    Title title;
-    Status status;
-    Experimental experimental;
-    Publisher publisher;
+    ValueString id;
+    ValueString url;
+    ValueSystemCode identifier;
+    ValueString name;
+    ValueString title;
+    ValueString status;
+    ValueBoolean experimental;
+    ValueString publisher;
     Contact contact;
-    Copyright copyright;
-    CaseSensitive caseSensitive;
-    ValueSet valueSet;
-    HierarchyMeaning hierarchyMeaning;
-    Compositional compositional;
-    VersionNeeded versionNeeded;
-    Content content;
-    Description[] description;
+    ValueString copyright;
+    ValueBoolean caseSensitive;
+    ValueString valueSet;
+    ValueString hierarchyMeaning;
+    ValueBoolean compositional;
+    ValueBoolean versionNeeded;
+    ValueString content;
+    ValueString[] description;
     Filter[] filters?;
     Property[] properties?;
 };
 
-type Id record {
+type ValueString record {
     string value;
 };
 
-type Url record {
-    string value;
-};
-
-type Identifier record {
-    System system;
-    Value value;
-};
-
-type System record {
-    string value;
-};
-
-type Value record {
-    string value;
-};
-
-type Name record {
-    string value;
-};
-
-type Title record {
-    string value;
-};
-
-type Status record {
-    string value;
-};
-
-type Experimental record {
+type ValueBoolean record {
     boolean value;
 };
 
-type Publisher record {
-    string value;
+type ValueSystemCode record {
+    ValueString system;
+    ValueString value;
 };
 
 type Contact record {
-    Telecom telecom;
-};
-
-type Telecom record {
-    System system;
-    Value value;
-};
-
-type Description record {
-    string value;
-};
-
-type Copyright record {
-    string value;
-};
-
-type CaseSensitive record {
-    boolean value;
-};
-
-type ValueSet record {
-    string value;
-};
-
-type HierarchyMeaning record {
-    string value;
-};
-
-type Compositional record {
-    boolean value;
-};
-
-type VersionNeeded record {
-    boolean value;
-};
-
-type Content record {
-    string value;
+    ValueSystemCode telecom;
 };
 
 type Filter record {
-    Code code;
-    Description description;
-    Operator operator;
-    Value value;
-};
-
-type Code record {
-    string value;
-};
-
-type Operator record {
-    string value;
+    ValueString code;
+    ValueString description;
+    ValueString operator;
+    ValueString value;
 };
 
 type Property record {
-    Code code;
-    Uri uri;
-    Description description;
-    Type 'type;
-};
-
-type Uri record {
-    string value;
-};
-
-type Type record {
-    string value;
+    ValueString code;
+    ValueString uri;
+    ValueString description;
+    ValueString 'type;
 };
