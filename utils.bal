@@ -150,12 +150,16 @@ function getProperties(LoincConcept loinc) returns r4:CodeSystemConceptProperty[
 }
 
 // Function to create the CodeSystem resource
-function createCodeSystemResourceFromJSON(LoincConcept[]? concepts, string loincFilePath) returns r4:CodeSystem|error {
+function createCodeSystemResourceFromJSON(LoincConcept[]? concepts, string loincFilePath, string? 'version) returns r4:CodeSystem|error {
     io:println("Reading LOINC CodeSystem (JSON) file from: ", loincFilePath, " ...");
     string jsonString = check io:fileReadString(loincFilePath);
 
     r4:CodeSystem codeSystem = check parser:parse(jsonString).ensureType();
     codeSystem.concept = LoincConceptToR4Concept(concepts);
+
+    if ('version is string) {
+        codeSystem.version = 'version;
+    }
     
     return codeSystem;
 }
@@ -169,8 +173,9 @@ function createCodeSystemResource(LoincConcept[]? concepts, string loincFilePath
     r4:CodeSystem codeSystem = mapXMLCodeSystemToR4CodeSystem(xmlcodeSystem);
     codeSystem.concept = LoincConceptToR4Concept(concepts);
 
-    // loinc xml does not having the version field
-    codeSystem.version = 'version;
+    if ('version is string) {
+        codeSystem.version = 'version;
+    } 
     
     return codeSystem;
 }
