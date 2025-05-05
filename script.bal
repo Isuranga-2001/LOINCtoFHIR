@@ -30,7 +30,7 @@ function validateExtractedData() returns error? {
 
     // parse into CodeSystem object
     r4:CodeSystem codeSystem = check parser:parse(jsonString).ensureType();
-    io:println("Successfully Parsed CodeSystem: ", codeSystem.url, ", version: ", codeSystem.version, "\n");
+    io:println("Successfully Parsed CodeSystem: ", codeSystem.url, ", version: ", codeSystem.version);
 }
 
 public function main(string... args) returns error? {
@@ -40,14 +40,13 @@ public function main(string... args) returns error? {
 
     string loincCsvPath;
     string loincCodeSystemPath;
-    string? 'version = ();
     boolean isExtract = args[0] == "extract";
 
     if (isExtract) {
         // argument[0] is the command to extract the LOINC ZIP file
         // argument[1] is the path to the LOINC ZIP file
         // argument[2] is the version of the LOINC CodeSystem
-        io:println("Extract the concepts from LOINC ZIP file: ", args[1], " ...");
+        io:println("Extracting the concepts from LOINC ZIP file: ", args[1], " ...");
 
         check extractLoincZip(args[1]);
         loincCsvPath = EXTRACTED_FOLDER_PATH + LOINC_CSV_FILE_PATH;
@@ -65,9 +64,12 @@ public function main(string... args) returns error? {
     }
 
     LoincConcept[] loincData = check readLoincCsv(loincCsvPath);
-
-    'version = args[2];
-    check exportCodeSystem(loincData, loincCodeSystemPath, 'version, isExtract);
-
+    check exportCodeSystem(loincData, loincCodeSystemPath, args[2], isExtract);
+    
     check validateExtractedData();
+
+    if isExtract {
+        check removeExtractedDirectory();
+        io:println("Removed extracted directory: ", EXTRACTED_FOLDER_PATH);
+    }
 }
